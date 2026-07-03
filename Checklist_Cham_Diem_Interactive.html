@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist chấm điểm — Phân tích Dữ liệu trong Kinh doanh</title>
+<style>
+  :root{
+    --ink:#1B2B2A;
+    --paper:#FBFAF7;
+    --panel:#FFFFFF;
+    --teal:#1F4E5F;
+    --teal-deep:#153843;
+    --green:#2E7D5B;
+    --green-soft:#E7F1EB;
+    --amber:#B8863C;
+    --amber-soft:#FBF1E1;
+    --plum:#6B4A73;
+    --plum-soft:#F1EAF2;
+    --line:#DDD8CD;
+    --line-soft:#EDEAE2;
+    --danger:#A5443A;
+    --danger-soft:#FBEAE8;
+    --muted:#7A756A;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.5;
+    padding-bottom:80px;
+  }
+  h1,h2,h3{
+    font-family:Georgia,"Times New Roman",serif;
+    margin:0;
+  }
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 20px;
+  }
+
+  /* ---------- Top header ---------- */
+  .masthead{
+    background:linear-gradient(135deg,var(--teal-deep),var(--teal));
+    color:#fff;
+    padding:36px 0 28px;
+  }
+  .masthead .wrap{display:flex; flex-direction:column; gap:6px;}
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    font-size:11.5px;
+    color:#B9D3CE;
+    font-weight:600;
+  }
+  .masthead h1{font-size:26px; font-weight:700; margin-top:2px;}
+  .masthead p{margin:4px 0 0; color:#CFE1DC; font-size:13.5px;}
+
+  .info-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:10px;
+    margin-top:20px;
+  }
+  .info-field label{
+    display:block;
+    font-size:11px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:#BFD8D2;
+    margin-bottom:4px;
+  }
+  .info-field input{
+    width:100%;
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.3);
+    border-radius:7px;
+    padding:8px 10px;
+    color:#fff;
+    font-size:14px;
+  }
+  .info-field input::placeholder{color:#BFD8D2;}
+  .info-field input:focus{outline:2px solid #fff; outline-offset:1px;}
+
+  /* ---------- Sticky score bar ---------- */
+  .scorebar{
+    position:sticky; top:0; z-index:50;
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    box-shadow:0 2px 10px rgba(20,40,38,.06);
+  }
+  .scorebar .inner{
+    max-width:920px; margin:0 auto; padding:10px 20px;
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  }
+  .total-badge{
+    display:flex; align-items:baseline; gap:4px;
+    font-family:Georgia,serif;
+    color:var(--teal-deep);
+  }
+  .total-badge .num{font-size:30px; font-weight:700;}
+  .total-badge .max{font-size:14px; color:var(--muted);}
+  .mini-bars{display:flex; gap:10px; flex:1; min-width:220px;}
+  .mini-bar{flex:1; min-width:60px;}
+  .mini-bar .lbl{font-size:10.5px; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:3px;}
+  .mini-bar .track{height:6px; background:var(--line-soft); border-radius:4px; overflow:hidden;}
+  .mini-bar .fill{height:100%; border-radius:4px; transition:width .25s ease;}
+  .scorebar-actions{display:flex; gap:8px; margin-left:auto;}
+  .btn{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:13px;
+    cursor:pointer;
+    font-family:inherit;
+    transition:background .15s, transform .1s;
+  }
+  .btn:hover{background:var(--line-soft);}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--green); border-color:var(--green); color:#fff;}
+  .btn-primary:hover{background:#256a4c;}
+  .btn-ghost{background:transparent;}
+
+  /* ---------- Section cards ---------- */
+  .section{
+    margin-top:34px;
+  }
+  .section-head{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px;
+    border-radius:var(--radius);
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .section-head .tag{
+    width:34px; height:34px; border-radius:50%;
+    background:rgba(255,255,255,.22);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Georgia,serif; font-weight:700; font-size:16px;
+    flex-shrink:0;
+  }
+  .section-head h2{font-size:17px;}
+  .section-head .meta{font-size:12px; opacity:.85; margin-top:2px;}
+  .section-head .spacer{flex:1;}
+  .section-head .subtotal{font-family:Georgia,serif; font-size:15px; font-weight:700; white-space:nowrap;}
+
+  .sub{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:12px;
+  }
+  .sub-top{
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .sub-top h3{font-size:14.5px; color:var(--teal-deep);}
+  .sub-top .max{font-size:12px; color:var(--muted);}
+  .score-input-wrap{
+    display:flex; align-items:center; gap:6px;
+    background:var(--green-soft);
+    border-radius:7px;
+    padding:4px 8px;
+  }
+  .score-input-wrap input{
+    width:52px; border:none; background:transparent;
+    font-family:Georgia,serif; font-weight:700; font-size:15px;
+    color:var(--green); text-align:right;
+  }
+  .score-input-wrap input:focus{outline:none;}
+  .score-input-wrap .of{font-size:12px; color:var(--muted);}
+
+  .levels{display:grid; gap:8px;}
+  .level{
+    display:flex; align-items:flex-start; gap:10px;
+    border:1px solid var(--line-soft);
+    border-radius:8px;
+    padding:9px 12px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .level:hover{border-color:var(--green);}
+  .level.selected{
+    border-color:var(--green);
+    background:var(--green-soft);
+  }
+  .level input{margin-top:3px; accent-color:var(--green); flex-shrink:0;}
+  .level .ltext{font-size:13.5px;}
+  .level .lname{font-weight:700; margin-right:6px;}
+  .level .lrange{color:var(--muted); font-weight:500; font-size:12px;}
+  .level .ldesc{display:block; color:#4B4A43; margin-top:2px; font-size:13px;}
+  .note{
+    font-size:12px; color:var(--muted); font-style:italic;
+    margin-top:6px; padding-top:8px; border-top:1px dashed var(--line);
+  }
+
+  /* ---------- Deductions / bonus ---------- */
+  .flagbox{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    margin-bottom:12px;
+  }
+  .flagbox.deduct{background:var(--danger-soft); border-color:#E7C6C2;}
+  .flagbox.bonus{background:var(--amber-soft); border-color:#E9D2A6;}
+  .flagbox .flagtitle{
+    font-weight:700; font-size:13.5px; margin-bottom:10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .flag-item{
+    display:flex; align-items:flex-start; gap:9px;
+    padding:7px 0;
+    font-size:13.5px;
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .flag-item:last-child{border-bottom:none;}
+  .flag-item input{margin-top:3px; flex-shrink:0;}
+  .flag-item .pts{font-weight:700; margin-right:6px;}
+  .deduct .pts{color:var(--danger);}
+  .bonus .pts{color:var(--amber);}
+
+  /* ---------- Manual adjust + final ---------- */
+  .finalbox{
+    background:linear-gradient(135deg,var(--teal-deep),var(--teal));
+    color:#fff;
+    border-radius:14px;
+    padding:22px 24px;
+    margin-top:30px;
+    display:flex; flex-wrap:wrap; gap:20px; align-items:center;
+  }
+  .finalbox .left{flex:1; min-width:240px;}
+  .finalbox h2{font-size:16px; margin-bottom:4px;}
+  .finalbox .breakdown{font-size:12.5px; color:#CFE1DC;}
+  .finalbox .totalnum{
+    font-family:Georgia,serif; font-size:44px; font-weight:700;
+  }
+  .finalbox .totalnum span{font-size:18px; font-weight:400; color:#CFE1DC;}
+  .manual-adjust{display:flex; flex-direction:column; gap:4px;}
+  .manual-adjust label{font-size:11px; color:#BFD8D2; text-transform:uppercase; letter-spacing:.05em;}
+  .manual-adjust input{
+    width:110px; padding:7px 9px; border-radius:7px; border:1px solid rgba(255,255,255,.35);
+    background:rgba(255,255,255,.12); color:#fff; font-size:14px;
+  }
+
+  /* ---------- Group log table ---------- */
+  .logsec{margin-top:36px;}
+  .logsec-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;}
+  .logsec-head h2{font-size:17px; color:var(--teal-deep);}
+  table.log{
+    width:100%; border-collapse:collapse; background:var(--panel);
+    border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+    font-size:12.5px;
+  }
+  table.log th, table.log td{
+    padding:8px 10px; text-align:left; border-bottom:1px solid var(--line-soft);
+  }
+  table.log th{background:var(--teal); color:#fff; font-weight:600; font-size:11.5px;}
+  table.log tr:last-child td{border-bottom:none;}
+  table.log td.num{text-align:center; font-family:Georgia,serif;}
+  table.log .rm{cursor:pointer; color:var(--danger); font-size:12px; text-decoration:underline; background:none; border:none; font-family:inherit;}
+  .empty-log{color:var(--muted); font-size:13px; padding:14px 4px; font-style:italic;}
+
+  footer{
+    text-align:center; color:var(--muted); font-size:12px; margin-top:50px;
+  }
+
+  @media print{
+    .scorebar, .btn, .flag-item input, .logsec-head .btn{ }
+    .scorebar{position:static; box-shadow:none;}
+    body{padding-bottom:0;}
+    .no-print{display:none !important;}
+  }
+  @media (max-width:600px){
+    .masthead h1{font-size:21px;}
+    .finalbox{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="wrap">
+    <span class="eyebrow">HUFLIT · 2026</span>
+    <h1>Checklist chấm điểm — Đồ án cuối môn</h1>
+    <p>Phân tích Dữ liệu trong Kinh doanh · Tổng điểm 10.0 (+ tối đa 0.5 điểm thưởng)</p>
+    <div class="info-grid">
+      <div class="info-field"><label>Nhóm số</label><input id="f-group" placeholder="VD: Nhóm 05"></div>
+      <div class="info-field"><label>Tên đề tài</label><input id="f-topic" placeholder="VD: Dự đoán giá BĐS Tiki"></div>
+      <div class="info-field"><label>Thành viên</label><input id="f-members" placeholder="Họ tên các thành viên"></div>
+      <div class="info-field"><label>Giảng viên chấm</label><input id="f-teacher" placeholder="Tên GV"></div>
+      <div class="info-field"><label>Ngày chấm</label><input id="f-date" type="date"></div>
+    </div>
+  </div>
+</div>
+
+<div class="scorebar">
+  <div class="inner">
+    <div class="total-badge"><span class="num" id="bar-total">0.0</span><span class="max">/ 10.0</span></div>
+    <div class="mini-bars" id="mini-bars"></div>
+    <div class="scorebar-actions no-print">
+      <button class="btn" onclick="resetForm()">↺ Làm mới</button>
+      <button class="btn" onclick="window.print()">🖨 In phiếu</button>
+      <button class="btn btn-primary" onclick="saveGroup()">＋ Lưu điểm nhóm</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <p style="font-size:13px;color:var(--muted);margin-top:18px;">
+    Chọn mức đạt được cho từng tiêu chí — điểm sẽ tự điền và có thể chỉnh tay trong ô bên phải. Tổng điểm cập nhật trực tiếp ở thanh trên.
+  </p>
+
+  <div id="sections"></div>
+
+  <div class="finalbox">
+    <div class="left">
+      <h2>Tổng điểm nhóm hiện tại</h2>
+      <div class="breakdown" id="final-breakdown">A 0.0 · B 0.0 · C 0.0 · D 0.0 · Trừ điểm 0.0 · Thưởng 0.0</div>
+    </div>
+    <div class="totalnum" id="final-total">0.0<span> / 10.0</span></div>
+    <div class="manual-adjust no-print">
+      <label>Điều chỉnh thủ công</label>
+      <input type="number" id="manual-adjust" value="0" step="0.1" onchange="recalc()">
+    </div>
+  </div>
+
+  <div class="logsec no-print">
+    <div class="logsec-head">
+      <h2>Bảng tổng hợp các nhóm đã lưu</h2>
+      <button class="btn" id="export-btn" onclick="exportCSV()">⬇ Xuất CSV tất cả nhóm</button>
+    </div>
+    <div id="log-table-wrap"><div class="empty-log">Chưa có nhóm nào được lưu. Điền thông tin nhóm phía trên, chấm điểm rồi bấm "Lưu điểm nhóm".</div></div>
+  </div>
+
+  <footer>Checklist chấm điểm · Phân tích Dữ liệu trong Kinh doanh · HUFLIT 2026</footer>
+</div>
+
+<script>
+const SECTION_COLORS = { A:'#1F4E5F', B:'#2E7D5B', C:'#B8863C', D:'#6B4A73' };
+
+const CRITERIA = [
+  { code:'A', title:'EDA & Trực quan hóa', weight:'20%', max:2.0,
+    subs:[
+      { code:'A1', title:'Phân tích Thống kê Mô tả', max:0.5, levels:[
+        {name:'Xuất sắc', range:'0.5', val:0.5, desc:'Đầy đủ mean/median/std/min/max; phân tích phân phối (skew, kurtosis); nhận xét ý nghĩa từng biến với bài toán kinh doanh'},
+        {name:'Tốt', range:'0.4', val:0.4, desc:'Thống kê mô tả đủ; có nhận xét nhưng chưa liên kết kinh doanh rõ'},
+        {name:'Đạt', range:'0.3', val:0.3, desc:'Chỉ chạy df.describe(), không có nhận xét thêm'},
+        {name:'Chưa đạt', range:'0–0.2', val:0.2, desc:'Thiếu thống kê mô tả hoặc sao chép mà không giải thích'},
+      ]},
+      { code:'A2', title:'Số lượng & Chất lượng Biểu đồ', max:0.8, levels:[
+        {name:'Xuất sắc', range:'0.8', val:0.8, desc:'≥7 biểu đồ; đa dạng loại (histogram, boxplot, heatmap, scatter, bar); mỗi biểu đồ có title, label trục, nhận xét markdown rõ ràng'},
+        {name:'Tốt', range:'0.6', val:0.6, desc:'5–6 biểu đồ; đa dạng; hầu hết có nhận xét'},
+        {name:'Đạt', range:'0.4', val:0.4, desc:'Đúng 5 biểu đồ tối thiểu; nhận xét còn sơ sài'},
+        {name:'Chưa đạt', range:'0–0.2', val:0.2, desc:'<5 biểu đồ hoặc biểu đồ không có nhận xét'},
+      ]},
+      { code:'A3', title:'Insight Kinh doanh từ EDA', max:0.4, levels:[
+        {name:'Xuất sắc', range:'0.4', val:0.4, desc:'≥3 insight cụ thể, có tính actionable (VD: "Nhóm KH 25–34 tuổi chiếm 40% doanh thu → ưu tiên marketing nhắm mục tiêu nhóm này")'},
+        {name:'Tốt', range:'0.3', val:0.3, desc:'2–3 insight nhưng còn chung chung'},
+        {name:'Đạt', range:'0.2', val:0.2, desc:'1 insight hoặc chỉ mô tả data mà không rút ra kết luận'},
+        {name:'Chưa đạt', range:'0', val:0, desc:'Không có insight kinh doanh'},
+      ]},
+    ],
+    deductions:[
+      {label:'Biểu đồ không có tiêu đề / nhãn trục', points:-0.3, note:'−0.1 mỗi biểu đồ, tối đa −0.3'},
+      {label:'Nhận xét sao chép từ ChatGPT không đúng với data thực tế', points:-0.2},
+    ]
+  },
+  { code:'B', title:'Xây dựng Mô hình ML', weight:'35%', max:3.5,
+    subs:[
+      { code:'B1', title:'Tiền xử lý Dữ liệu', max:0.6, levels:[
+        {name:'Xuất sắc', range:'0.6', val:0.6, desc:'Xử lý đầy đủ: missing values (có lý giải), duplicates, outliers (có lý giải), encoding, scaling đúng (chỉ fit trên train); giải thích từng bước'},
+        {name:'Tốt', range:'0.5', val:0.5, desc:'Đủ các bước chính; scaling đúng; một số bước chưa giải thích'},
+        {name:'Đạt', range:'0.3', val:0.3, desc:'Xử lý cơ bản (drop null, encode); có data leakage nhỏ hoặc thiếu scaling'},
+        {name:'Chưa đạt', range:'0–0.1', val:0.1, desc:'Bỏ qua tiền xử lý hoặc fit scaler trên toàn bộ data'},
+      ]},
+      { code:'B2', title:'Triển khai Mô hình', max:0.8, levels:[
+        {name:'Xuất sắc', range:'0.8', val:0.8, desc:'≥2 model implement đúng; code sạch; có giải thích lý do chọn từng thuật toán; hyperparameter được điều chỉnh có chủ đích'},
+        {name:'Tốt', range:'0.6', val:0.6, desc:'2 model đúng; hyperparameter mặc định; giải thích sơ bộ'},
+        {name:'Đạt', range:'0.4', val:0.4, desc:'2 model chạy được nhưng thiếu giải thích lý do chọn'},
+        {name:'Chưa đạt', range:'0–0.2', val:0.2, desc:'Chỉ có 1 model hoặc model không phù hợp bài toán'},
+      ]},
+      { code:'B3', title:'Đánh giá Mô hình', max:0.9, note:'Metrics: Regression → MAE, RMSE, R² (bắt buộc), MAPE (khuyến khích) · Classification → Accuracy, Precision, Recall, F1 (bắt buộc), ROC-AUC (khuyến khích) · Clustering → Inertia, Silhouette (bắt buộc), Elbow plot (bắt buộc)', levels:[
+        {name:'Xuất sắc', range:'0.9', val:0.9, desc:'Báo cáo đầy đủ metrics phù hợp; có cross-validation; visualization kết quả; giải thích ý nghĩa từng metric'},
+        {name:'Tốt', range:'0.7', val:0.7, desc:'Đủ metrics; có visualization; chưa có cross-validation'},
+        {name:'Đạt', range:'0.5', val:0.5, desc:'Metrics cơ bản; không visualization'},
+        {name:'Chưa đạt', range:'0–0.2', val:0.2, desc:'Thiếu metrics hoặc dùng sai metrics (VD: dùng accuracy cho imbalanced data)'},
+      ]},
+      { code:'B4', title:'So sánh Mô hình', max:0.7, levels:[
+        {name:'Xuất sắc', range:'0.7', val:0.7, desc:'Bảng so sánh đầy đủ; phân tích nguyên nhân model này tốt hơn model kia; đề xuất model tốt nhất có lý giải'},
+        {name:'Tốt', range:'0.5', val:0.5, desc:'Bảng so sánh đủ; chọn model tốt nhất nhưng chưa giải thích sâu'},
+        {name:'Đạt', range:'0.3', val:0.3, desc:'So sánh sơ bộ, không có bảng'},
+        {name:'Chưa đạt', range:'0', val:0, desc:'Không so sánh'},
+      ]},
+    ],
+    deductions:[
+      {label:'Data leakage (fit scaler/encoder trên toàn bộ data)', points:-0.5, note:'tự động'},
+      {label:'Model không phù hợp bài toán (VD: Regression cho biến phân loại)', points:-0.4},
+    ]
+  },
+  { code:'C', title:'Diễn giải Kết quả', weight:'25%', max:2.5,
+    subs:[
+      { code:'C1', title:'Diễn giải theo Ngôn ngữ Kinh doanh', max:1.0, levels:[
+        {name:'Xuất sắc', range:'1.0', val:1.0, desc:'Kết quả model được diễn giải hoàn toàn bằng ngôn ngữ kinh doanh; tránh jargon kỹ thuật; ví dụ cụ thể với số liệu thực tế từ dataset'},
+        {name:'Tốt', range:'0.8', val:0.8, desc:'Diễn giải tốt nhưng đôi khi vẫn dùng thuật ngữ kỹ thuật không giải thích'},
+        {name:'Đạt', range:'0.5', val:0.5, desc:'Chỉ báo cáo số liệu kỹ thuật (R²=0.85...) mà không diễn giải ý nghĩa'},
+        {name:'Chưa đạt', range:'0–0.2', val:0.2, desc:'Không có phần diễn giải'},
+      ]},
+      { code:'C2', title:'Đề xuất Hành động Kinh doanh', max:1.0, levels:[
+        {name:'Xuất sắc', range:'1.0', val:1.0, desc:'≥3 đề xuất cụ thể, actionable, có căn cứ từ kết quả phân tích; phân biệt được ngắn hạn vs dài hạn'},
+        {name:'Tốt', range:'0.7', val:0.7, desc:'2–3 đề xuất; có căn cứ nhưng chưa chi tiết'},
+        {name:'Đạt', range:'0.4', val:0.4, desc:'1–2 đề xuất chung chung'},
+        {name:'Chưa đạt', range:'0', val:0, desc:'Không có đề xuất'},
+      ]},
+      { code:'C3', title:'Giới hạn Mô hình & Hướng Phát triển', max:0.5, levels:[
+        {name:'Xuất sắc', range:'0.5', val:0.5, desc:'Xác định ≥2 giới hạn cụ thể; đề xuất hướng khắc phục thực tế và khả thi'},
+        {name:'Tốt', range:'0.3–0.4', val:0.4, desc:'1–2 giới hạn; hướng phát triển còn mơ hồ'},
+        {name:'Đạt', range:'0.2', val:0.2, desc:'Nhắc đến giới hạn rất sơ sài ("cần thêm data")'},
+        {name:'Chưa đạt', range:'0', val:0, desc:'Không có phần này'},
+      ]},
+    ],
+    deductions:[]
+  },
+  { code:'D', title:'Báo cáo & Bảo vệ', weight:'20%', max:2.0,
+    subs:[
+      { code:'D1', title:'Cấu trúc Notebook', max:0.6, levels:[
+        {name:'Xuất sắc', range:'0.6', val:0.6, desc:'Đủ 8 phần theo yêu cầu; markdown rõ ràng, dùng heading H1/H2/H3 hợp lý; code cell sạch, có comment; chạy Restart & Run All thành công'},
+        {name:'Tốt', range:'0.5', val:0.5, desc:'Đủ 8 phần; một vài cell không có giải thích'},
+        {name:'Đạt', range:'0.3', val:0.3, desc:'Thiếu 1–2 phần; notebook lộn xộn'},
+        {name:'Chưa đạt', range:'0–0.1', val:0.1, desc:'Thiếu ≥3 phần hoặc notebook không chạy được'},
+      ]},
+      { code:'D2', title:'Slide Trình bày', max:0.5, levels:[
+        {name:'Xuất sắc', range:'0.5', val:0.5, desc:'8–12 slides; bố cục rõ, không quá nhiều chữ; hình ảnh/biểu đồ từ notebook; có trang kết luận rõ ràng'},
+        {name:'Tốt', range:'0.4', val:0.4, desc:'Đủ nội dung; slide hơi dày chữ'},
+        {name:'Đạt', range:'0.2–0.3', val:0.3, desc:'Slide thiếu nội dung quan trọng'},
+        {name:'Chưa đạt', range:'0', val:0, desc:'Không có slide'},
+      ]},
+      { code:'D3', title:'Thuyết trình & Phân công', max:0.5, levels:[
+        {name:'Xuất sắc', range:'0.5', val:0.5, desc:'Tất cả thành viên đều trình bày; thời gian đúng (≤15 phút); diễn đạt tự nhiên'},
+        {name:'Tốt', range:'0.4', val:0.4, desc:'Phân công hợp lý nhưng 1 thành viên quá ít'},
+        {name:'Đạt', range:'0.2–0.3', val:0.3, desc:'Chỉ 1–2 người trình bày toàn bộ'},
+        {name:'Chưa đạt', range:'0', val:0, desc:'Không trình bày đủ nhóm'},
+      ]},
+      { code:'D4', title:'Trả lời Câu hỏi Phản biện', max:0.4, levels:[
+        {name:'Xuất sắc', range:'0.4', val:0.4, desc:'Trả lời được tất cả câu hỏi GV; thể hiện hiểu bản chất, không chỉ nhớ code'},
+        {name:'Tốt', range:'0.3', val:0.3, desc:'Trả lời được phần lớn; 1 câu không rõ'},
+        {name:'Đạt', range:'0.2', val:0.2, desc:'Trả lời được ≥50% câu hỏi'},
+        {name:'Chưa đạt', range:'0–0.1', val:0.1, desc:'Không trả lời được hoặc trả lời sai cơ bản'},
+      ]},
+    ],
+    deductions:[]
+  },
+];
+
+const BONUS = [
+  {label:'Tự crawl dataset thực tế (Shopee, Tiki, batdongsan...) với code đính kèm', points:0.3},
+  {label:'Triển khai model thành web app đơn giản (Streamlit / Gradio)', points:0.3},
+  {label:'Áp dụng kỹ thuật nâng cao chưa học trong môn (XGBoost, SHAP...) có giải thích', points:0.2},
+  {label:'Phân tích theo góc nhìn đặc thù thị trường Việt Nam', points:0.1},
+];
+const BONUS_CAP = 0.5;
+
+let savedGroups = [];
+
+function buildSections(){
+  const root = document.getElementById('sections');
+  root.innerHTML = '';
+  CRITERIA.forEach(sec=>{
+    const secEl = document.createElement('div');
+    secEl.className = 'section';
+    secEl.innerHTML = `
+      <div class="section-head" style="background:${SECTION_COLORS[sec.code]}">
+        <div class="tag">${sec.code}</div>
+        <div>
+          <h2>${sec.title}</h2>
+          <div class="meta">${sec.weight} · tối đa ${sec.max.toFixed(1)} điểm</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="subtotal" id="subtotal-${sec.code}">0.0 / ${sec.max.toFixed(1)}</div>
+      </div>
+    `;
+    sec.subs.forEach(sub=>{
+      const subEl = document.createElement('div');
+      subEl.className = 'sub';
+      let levelsHtml = sub.levels.map((lv,i)=>`
+        <label class="level" data-sub="${sub.code}" data-idx="${i}">
+          <input type="radio" name="radio-${sub.code}" value="${lv.val}" onchange="onLevelPick('${sub.code}', ${lv.val}, this)">
+          <span class="ltext">
+            <span class="lname">${lv.name}</span><span class="lrange">(${lv.range}đ)</span>
+            <span class="ldesc">${lv.desc}</span>
+          </span>
+        </label>
+      `).join('');
+      subEl.innerHTML = `
+        <div class="sub-top">
+          <h3>${sub.code}. ${sub.title}</h3>
+          <div class="score-input-wrap">
+            <input type="number" id="score-${sub.code}" min="0" max="${sub.max}" step="0.1" value="0" oninput="onScoreInput('${sub.code}', ${sub.max})">
+            <span class="of">/ ${sub.max}đ</span>
+          </div>
+        </div>
+        <div class="levels">${levelsHtml}</div>
+        ${sub.note ? `<div class="note">${sub.note}</div>` : ''}
+      `;
+      secEl.appendChild(subEl);
+    });
+    if(sec.deductions.length){
+      const dEl = document.createElement('div');
+      dEl.className = 'flagbox deduct';
+      dEl.innerHTML = `<div class="flagtitle">⚠️ Lỗi trừ điểm (${sec.code})</div>` +
+        sec.deductions.map((d,i)=>`
+          <label class="flag-item">
+            <input type="checkbox" data-deduct-sec="${sec.code}" data-points="${d.points}" onchange="recalc()">
+            <span><span class="pts">${d.points}đ</span>${d.label}${d.note ? ' <em>('+d.note+')</em>' : ''}</span>
+          </label>
+        `).join('');
+      secEl.appendChild(dEl);
+    }
+    root.appendChild(secEl);
+  });
+
+  // bonus box
+  const bEl = document.createElement('div');
+  bEl.className = 'flagbox bonus';
+  bEl.innerHTML = `<div class="flagtitle">🏅 Điểm thưởng (tối đa +${BONUS_CAP})</div>` +
+    BONUS.map(b=>`
+      <label class="flag-item">
+        <input type="checkbox" data-bonus data-points="${b.points}" onchange="recalc()">
+        <span><span class="pts">+${b.points}đ</span>${b.label}</span>
+      </label>
+    `).join('');
+  root.appendChild(bEl);
+
+  // mini bars
+  const mb = document.getElementById('mini-bars');
+  mb.innerHTML = CRITERIA.map(sec=>`
+    <div class="mini-bar">
+      <div class="lbl"><span>${sec.code}</span><span id="mini-val-${sec.code}">0/${sec.max}</span></div>
+      <div class="track"><div class="fill" id="mini-fill-${sec.code}" style="width:0%;background:${SECTION_COLORS[sec.code]}"></div></div>
+    </div>
+  `).join('');
+}
+
+function onLevelPick(subCode, val, radioEl){
+  document.getElementById('score-'+subCode).value = val;
+  document.querySelectorAll(`.level[data-sub="${subCode}"]`).forEach(l=>l.classList.remove('selected'));
+  radioEl.closest('.level').classList.add('selected');
+  recalc();
+}
+
+function onScoreInput(subCode, max){
+  const inp = document.getElementById('score-'+subCode);
+  let v = parseFloat(inp.value);
+  if(isNaN(v)) v = 0;
+  if(v > max) v = max;
+  if(v < 0) v = 0;
+  inp.value = v;
+  recalc();
+}
+
+function recalc(){
+  let grand = 0;
+  const secTotals = {};
+  CRITERIA.forEach(sec=>{
+    let secTotal = 0;
+    sec.subs.forEach(sub=>{
+      const v = parseFloat(document.getElementById('score-'+sub.code).value) || 0;
+      secTotal += v;
+    });
+    let deductTotal = 0;
+    document.querySelectorAll(`input[data-deduct-sec="${sec.code}"]:checked`).forEach(chk=>{
+      deductTotal += parseFloat(chk.dataset.points);
+    });
+    secTotal = Math.max(0, secTotal + deductTotal);
+    secTotals[sec.code] = secTotal;
+    grand += secTotal;
+
+    document.getElementById('subtotal-'+sec.code).textContent = secTotal.toFixed(1)+' / '+sec.max.toFixed(1);
+    document.getElementById('mini-val-'+sec.code).textContent = secTotal.toFixed(1)+'/'+sec.max;
+    const pct = Math.min(100, (secTotal/sec.max)*100);
+    document.getElementById('mini-fill-'+sec.code).style.width = pct+'%';
+  });
+
+  let bonusTotal = 0;
+  document.querySelectorAll('input[data-bonus]:checked').forEach(chk=>{
+    bonusTotal += parseFloat(chk.dataset.points);
+  });
+  bonusTotal = Math.min(BONUS_CAP, bonusTotal);
+
+  let totalDeduct = 0;
+  document.querySelectorAll('input[data-deduct-sec]:checked').forEach(chk=>{
+    totalDeduct += parseFloat(chk.dataset.points);
+  });
+
+  const manual = parseFloat(document.getElementById('manual-adjust').value) || 0;
+
+  let finalTotal = grand + bonusTotal + manual;
+  finalTotal = Math.max(0, Math.min(10, finalTotal));
+
+  document.getElementById('bar-total').textContent = finalTotal.toFixed(1);
+  document.getElementById('final-total').innerHTML = finalTotal.toFixed(1)+'<span> / 10.0</span>';
+  document.getElementById('final-breakdown').textContent =
+    `A ${secTotals.A.toFixed(1)} · B ${secTotals.B.toFixed(1)} · C ${secTotals.C.toFixed(1)} · D ${secTotals.D.toFixed(1)} · Trừ điểm ${totalDeduct.toFixed(1)} · Thưởng +${bonusTotal.toFixed(1)}${manual? ' · Thủ công '+(manual>0?'+':'')+manual.toFixed(1):''}`;
+
+  return {finalTotal, secTotals, bonusTotal, totalDeduct};
+}
+
+function resetForm(){
+  if(!confirm('Làm mới toàn bộ phiếu chấm hiện tại? (Danh sách nhóm đã lưu vẫn được giữ)')) return;
+  document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=false);
+  document.querySelectorAll('.level').forEach(l=>l.classList.remove('selected'));
+  CRITERIA.forEach(sec=>sec.subs.forEach(sub=>{document.getElementById('score-'+sub.code).value = 0;}));
+  document.getElementById('manual-adjust').value = 0;
+  ['f-group','f-topic','f-members'].forEach(id=>document.getElementById(id).value='');
+  recalc();
+}
+
+function saveGroup(){
+  const {finalTotal, secTotals, bonusTotal, totalDeduct} = recalc();
+  const group = document.getElementById('f-group').value.trim() || ('Nhóm '+(savedGroups.length+1));
+  const topic = document.getElementById('f-topic').value.trim();
+  savedGroups.push({
+    group, topic,
+    A:secTotals.A, B:secTotals.B, C:secTotals.C, D:secTotals.D,
+    deduct:totalDeduct, bonus:bonusTotal, total:finalTotal
+  });
+  renderLog();
+}
+
+function renderLog(){
+  const wrap = document.getElementById('log-table-wrap');
+  if(savedGroups.length===0){
+    wrap.innerHTML = '<div class="empty-log">Chưa có nhóm nào được lưu. Điền thông tin nhóm phía trên, chấm điểm rồi bấm "Lưu điểm nhóm".</div>';
+    return;
+  }
+  let rows = savedGroups.map((g,i)=>`
+    <tr>
+      <td>${g.group}</td>
+      <td>${g.topic||'—'}</td>
+      <td class="num">${g.A.toFixed(1)}</td>
+      <td class="num">${g.B.toFixed(1)}</td>
+      <td class="num">${g.C.toFixed(1)}</td>
+      <td class="num">${g.D.toFixed(1)}</td>
+      <td class="num">${g.deduct.toFixed(1)}</td>
+      <td class="num">+${g.bonus.toFixed(1)}</td>
+      <td class="num" style="font-weight:700;">${g.total.toFixed(1)}</td>
+      <td><button class="rm" onclick="removeGroup(${i})">Xóa</button></td>
+    </tr>
+  `).join('');
+  wrap.innerHTML = `
+    <table class="log">
+      <thead><tr>
+        <th>Nhóm</th><th>Đề tài</th><th>A /2.0</th><th>B /3.5</th><th>C /2.5</th><th>D /2.0</th>
+        <th>Trừ</th><th>Thưởng</th><th>Tổng /10</th><th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function removeGroup(i){
+  savedGroups.splice(i,1);
+  renderLog();
+}
+
+function exportCSV(){
+  if(savedGroups.length===0){ alert('Chưa có nhóm nào được lưu.'); return; }
+  const header = ['Nhóm','Đề tài','A','B','C','D','Trừ điểm','Thưởng','Tổng'];
+  const rows = savedGroups.map(g=>[g.group,g.topic,g.A.toFixed(1),g.B.toFixed(1),g.C.toFixed(1),g.D.toFixed(1),g.deduct.toFixed(1),g.bonus.toFixed(1),g.total.toFixed(1)]);
+  const csv = [header, ...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bang_diem_tong_hop.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+buildSections();
+recalc();
+</script>
+</body>
+</html>
